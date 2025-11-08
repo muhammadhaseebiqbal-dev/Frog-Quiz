@@ -25,6 +25,9 @@ jobs:
       run: |
         echo "=== Checking buildozer.spec ==="
         ls -la buildozer.spec
+        echo "=== Verifying source.filename parameter ==="
+        grep -E "^source\.(filename|main)" buildozer.spec || echo "WARNING: source.filename not found!"
+        echo "=== Full buildozer.spec content ==="
         cat buildozer.spec
         echo "=== Checking main_kivy.py (APK entry point) ==="
         ls -la main_kivy.py
@@ -104,6 +107,13 @@ jobs:
         key: ${{ runner.os }}-buildozer-local-${{ hashFiles('buildozer.spec') }}-v2
         restore-keys: |
           ${{ runner.os }}-buildozer-local-
+
+    - name: Clear Buildozer cache (force clean build)
+      run: |
+        echo "=== Clearing Buildozer cache to force fresh build ==="
+        rm -rf .buildozer/android/app
+        rm -rf .buildozer/android/platform/build-*/dists/*/build
+        echo "Cache cleared successfully"
 
     - name: Initialize Buildozer
       run: |

@@ -1,0 +1,18 @@
+{
+  "name": "Frog Quiz - Educational App",
+  "short_name": "Frog Quiz",
+  "description": "Learn about 8 frog species through their calls and spectrograms",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#2E8B57",
+  "theme_color": "#2E8B57",
+  "orientation": "landscape",
+  "icons": [
+    {
+      "src": "/assets/UnknownFrog.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
