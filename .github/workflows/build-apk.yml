@@ -10,6 +10,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    timeout-minutes: 120
 
     steps:
     - name: Checkout code
@@ -18,10 +19,21 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.9'
+        python-version: '3.10'
+
+    - name: Verify buildozer.spec exists
+      run: |
+        echo "=== Checking buildozer.spec ==="
+        ls -la buildozer.spec
+        cat buildozer.spec
+        echo "=== Checking main.py ==="
+        ls -la main.py
+        echo "=== Checking assets directory ==="
+        ls -la assets/ || echo "Assets directory not found"
 
     - name: Install system dependencies
       run: |
+        echo "=== Installing system packages ==="
         sudo apt-get update
         sudo apt-get install -y \
           git \
@@ -31,6 +43,7 @@ jobs:
           autoconf \
           automake \
           libtool \
+          m4 \
           pkg-config \
           zlib1g-dev \
           libncurses5-dev \
@@ -38,42 +51,110 @@ jobs:
           cmake \
           libffi-dev \
           libssl-dev \
+          libltdl-dev \
           python3-pip \
           python3-setuptools \
-          ccache
-        sudo apt-get install --reinstall -y libtool autoconf automake
-        which libtool
-        libtool --version
-        which autoconf
-        autoconf --version
+          python3-dev \
+          ccache \
+          wget \
+          curl
+        
+        echo "=== Verifying autotools installation ==="
+        sudo apt-get install --reinstall -y libtool autoconf automake m4
+        which libtool && libtool --version
+        which autoconf && autoconf --version
+        which automake && automake --version
+        which m4 && m4 --version
+
+    - name: Set up Java environment
+      run: |
+        echo "=== Setting up Java ==="
+        export JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
+        echo "JAVA_HOME=$JAVA_HOME" >> $GITHUB_ENV
+        echo "PATH=$JAVA_HOME/bin:$PATH" >> $GITHUB_ENV
+        java -version
 
     - name: Install Python dependencies
       run: |
+        echo "=== Installing Python packages ==="
         python -m pip install --upgrade pip setuptools wheel
-        pip install buildozer==1.5.0
-        pip install cython==0.29.36
+        pip install --upgrade buildozer==1.5.0
+        pip install --upgrade cython==0.29.36
+        pip install --upgrade virtualenv
+        
+        echo "=== Verifying installations ==="
+        buildozer --version
+        cython --version
+        python --version
 
     - name: Cache Buildozer global directory
       uses: actions/cache@v4
       with:
         path: ~/.buildozer
-        key: ${{ runner.os }}-buildozer-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-global-${{ hashFiles('buildozer.spec') }}-v2
         restore-keys: |
-          ${{ runner.os }}-buildozer-
+          ${{ runner.os }}-buildozer-global-
 
-    - name: Cache Buildozer directory
+    - name: Cache Buildozer local directory
       uses: actions/cache@v4
       with:
         path: .buildozer
-        key: ${{ runner.os }}-buildozer-local-${{ hashFiles('buildozer.spec') }}
+        key: ${{ runner.os }}-buildozer-local-${{ hashFiles('buildozer.spec') }}-v2
         restore-keys: |
           ${{ runner.os }}-buildozer-local-
 
-    - name: Build APK with Buildozer
+    - name: Initialize Buildozer
       run: |
-        buildozer android debug
+        echo "=== Initializing Buildozer ==="
+        buildozer init || echo "Already initialized"
+        
+    - name: Build APK with Buildozer (with detailed logging)
+      run: |
+        set -e
+        echo "=== Starting Buildozer Android Debug Build ==="
+        echo "Build started at: $(date)"
+        
+        # Run buildozer with verbose output
+        buildozer -v android debug 2>&1 | tee buildozer.log || {
+          echo "=== BUILD FAILED ==="
+          echo "=== Showing last 200 lines of build log ==="
+          tail -n 200 buildozer.log
+          
+          echo "=== Searching for error patterns ==="
+          grep -i "error\|fail\|exception" buildozer.log | tail -n 50 || true
+          
+          echo "=== Checking for buildozer output files ==="
+          find .buildozer -name "*.log" -o -name "output.txt" | head -20 || true
+          
+          echo "=== Attempting to show python-for-android build log ==="
+          cat .buildozer/android/platform/build-*/dists/*/build/output.txt 2>/dev/null || true
+          
+          echo "=== Checking compilation logs ==="
+          find .buildozer -name "*.log" -exec echo "File: {}" \; -exec tail -20 {} \; 2>/dev/null | head -100 || true
+          
+          exit 1
+        }
+        
+        echo "=== Build completed successfully at: $(date) ==="
+
+    - name: Verify APK was created
+      run: |
+        echo "=== Checking for APK files ==="
+        ls -lh bin/ || echo "No bin directory found"
+        find . -name "*.apk" -exec ls -lh {} \;
+
+    - name: Upload buildozer log
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: buildozer-log
+        path: |
+          buildozer.log
+          .buildozer/android/platform/build-*/dists/*/build/output.txt
+        if-no-files-found: warn
 
     - name: Upload APK artifact
+      if: success()
       uses: actions/upload-artifact@v4
       with:
         name: frog-quiz-apk
@@ -81,9 +162,10 @@ jobs:
         if-no-files-found: error
 
     - name: Create Release (on tag)
-      if: startsWith(github.ref, 'refs/tags/')
+      if: startsWith(github.ref, 'refs/tags/') && success()
       uses: softprops/action-gh-release@v2
       with:
         files: bin/*.apk
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
