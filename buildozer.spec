@@ -56,9 +56,6 @@ android.ndk = 25b
 # (bool) Use --private data storage (True) or --dir public storage (False)
 android.private_storage = True
 
-# (str) Android entry point
-android.entrypoint = org.kivy.android.PythonActivity
-
 # (str) Filename of icon
 icon.filename = assets/App_overview.png
 
