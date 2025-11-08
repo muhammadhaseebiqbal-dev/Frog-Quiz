@@ -12,6 +12,10 @@ package.domain = org.katiehoward
 # (str) Source code where the main.py live
 source.dir = .
 
+# (str) Specify the main entry point filename for Kivy (not NiceGUI's main.py)
+# This tells buildozer to use main_kivy.py as the Python entry point
+source.main = main_kivy.py
+
 # (list) Source files to include (let empty to include all the files)
 # Include full-size _resized.mp4 videos for best quality
 source.include_exts = py,png,jpg,jpeg,mp4
