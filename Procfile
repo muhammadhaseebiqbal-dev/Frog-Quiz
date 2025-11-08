@@ -1,1 +1,1 @@
-web: sh -lc "python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8080} --http h11 --timeout-keep-alive 5"
+web: python main.py
