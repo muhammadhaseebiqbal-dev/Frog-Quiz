@@ -41,14 +41,11 @@ jobs:
           python3-pip \
           python3-setuptools \
           ccache
-
-    - name: Install latest autotools
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y --reinstall autoconf automake libtool m4
-        autoconf --version
-        automake --version
+        sudo apt-get install --reinstall -y libtool autoconf automake
+        which libtool
         libtool --version
+        which autoconf
+        autoconf --version
 
     - name: Install Python dependencies
       run: |
