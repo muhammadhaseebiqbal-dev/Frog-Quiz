@@ -13,16 +13,17 @@ package.domain = org.katiehoward
 source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
+# Include full-size _resized.mp4 videos for best quality
 source.include_exts = py,png,jpg,jpeg,mp4
 
-# (list) List of inclusions using pattern matching
-source.include_patterns = assets/*,*.py
+# (list) List of inclusions using pattern matching  
+# Include all _resized.mp4 (full-size videos) for APK
+source.include_patterns = assets/*.png,assets/*.jpg,assets/*_resized.mp4,*.py
 
 # (str) Main entry point for Android (simplified Kivy version)
 # Note: main.py contains the full NiceGUI version for web deployment
-# main_kivy.py is the simplified Android entry point
-# Uncomment the line below to use Kivy version for APK builds
-# android.entrypoint = main_kivy.py
+# main_kivy.py is the Kivy Android entry point
+android.entrypoint = main_kivy.py
 
 # (str) Application versioning (method 1)
 version = 1.0

@@ -9,6 +9,9 @@ import os
 ## local assets folder
 app.add_static_files('/assets', Path(__file__).parent / 'assets')
 
+# Add PWA manifest for "Add to Home Screen" on mobile devices
+app.add_static_files('/', Path(__file__).parent)
+
 ## def helper function 
 def resource_path(rel_path: str) -> str:
     # return proper URL path for assets
@@ -49,6 +52,15 @@ frogs_list = [
 # --- Home page ---
 @ui.page('/')
 def home_page():  
+    # Add PWA meta tags for mobile
+    ui.add_head_html('''
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="theme-color" content="#2E8B57">
+        <link rel="manifest" href="/manifest.json">
+        <link rel="apple-touch-icon" href="/assets/UnknownFrog.png">
+    ''')
 
     # ✅ Set the background color for the whole page
     ui.query('body').classes('bg-green-700')  # Tailwind green
