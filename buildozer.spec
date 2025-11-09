@@ -14,7 +14,8 @@ source.dir = .
 
 # (list) Source files to include (let empty to include all the files)
 # Include full-size _resized.mp4 videos for best quality
-source.include_exts = py,png,jpg,jpeg,mp4
+# IMPORTANT: json extension needed for lazy loading screen configuration
+source.include_exts = py,png,jpg,jpeg,mp4,json
 
 # (list) List of inclusions using pattern matching  
 # Include all _resized.mp4 (full-size videos) for APK

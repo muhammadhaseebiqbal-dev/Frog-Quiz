@@ -1,0 +1,22 @@
+{
+    "home": {
+        "module": "screens.home_screen",
+        "class": "HomeScreen"
+    },
+    "frog": {
+        "module": "screens.frog_detail_screen",
+        "class": "FrogDetailScreen"
+    },
+    "instructions": {
+        "module": "screens.instructions_screen",
+        "class": "InstructionsScreen"
+    },
+    "mystery": {
+        "module": "screens.mystery_screen",
+        "class": "MysteryScreen"
+    },
+    "app_info": {
+        "module": "screens.app_info_screen",
+        "class": "AppInfoScreen"
+    }
+}

@@ -1,0 +1,5 @@
+Deployment timestamp: 2025-11-09 (after Procfile and video fixes)
+Last commit: 68fd21d - Fix video playback ANR and blank screen on Android
+Previous commit: f93e030 - Fix Procfile to use main_web.py for Railway deployment
+
+This file confirms the repository includes both Railway web deployment fixes and Android video playback fixes.
