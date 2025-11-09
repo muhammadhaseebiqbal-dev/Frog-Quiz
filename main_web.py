@@ -284,10 +284,10 @@ def frog_detail_page(frog_name: str):
 
 
         # --- Video (no native controls) ---
-        video = ui.video(resource_path(frog["video"])).props('preload="auto" autoplay muted controlslist="nodownload nofullscreen noremoteplayback" disablepictureinpicture controls=false').classes(
+        video = ui.video(resource_path(frog["video"])).props('preload="auto" muted controlslist="nodownload nofullscreen noremoteplayback" disablepictureinpicture controls=false').classes(
             "w-full max-w-5x1 h-auto rounded-xl shadow-md border border-gray-300"
         )
-        # pause initially to show first frame
+        # pause initially to show first frame (no autoplay)
         ui.run_javascript('document.querySelector("video").pause()')
 
         play_icon = None
@@ -324,11 +324,16 @@ def frog_detail_page(frog_name: str):
 
         # --- Toggle logic ---
         def toggle_video():
-        # toggle play/pause in browser
+        # toggle play/pause in browser and unmute when playing
             ui.run_javascript("""
                 const video = document.querySelector('video');
-                if (video.paused) { video.play(); } 
-                else { video.pause(); }
+                if (video.paused) { 
+                    video.muted = false;  // Unmute when playing
+                    video.play(); 
+                } 
+                else { 
+                    video.pause(); 
+                }
             """)
         # update play icon
             if play_icon.source.endswith('PLAY.png'):
@@ -437,6 +442,11 @@ def mystery_frog_page():
             video.run_method("pause")
             play_icon.set_source("assets/PLAY.png")
         else:
+            # Unmute and play when play button is clicked
+            ui.run_javascript("""
+                const video = document.querySelector('video');
+                video.muted = false;
+            """)
             video.run_method("play")
             play_icon.set_source("assets/PAUSE.png")
         state["playing"] = not state["playing"]
@@ -452,9 +462,9 @@ def mystery_frog_page():
             "text-3xl font-bold text-center text-green-800 mb-4"
         )
 
-        # Video (paused initially, no controls)
+        # Video (paused initially, no controls, muted by default)
         video = ui.video(state["current_frog"]["video"]).props(
-            'controls=false controlslist="nodownload nofullscreen noremoteplayback"'
+            'controls=false muted controlslist="nodownload nofullscreen noremoteplayback"'
         ).classes(
             "w-full max-w-5x1 h-auto rounded-xl shadow-md border border-gray-300"
         )
