@@ -39,6 +39,9 @@ version = 1.0
 orientation = landscape
 
 # (bool) Indicate if the application should be fullscreen or not
+# Note: fullscreen = 1 causes black screen on some Android devices (Mali GPU)
+# See: https://github.com/kivy/python-for-android/issues/2720
+# Change to 0 if you experience black screen issues
 fullscreen = 1
 
 # (list) Permissions

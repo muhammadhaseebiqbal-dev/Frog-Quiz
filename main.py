@@ -60,6 +60,10 @@ class FrogQuizApp(App):
         sm.current = 'home'
         
         # Force UI refresh after launch to fix blank screen issue on Android
+        # Multiple attempts to fix the black screen issue with fullscreen=1
+        # See: https://github.com/kivy/python-for-android/issues/2720
+        Clock.schedule_once(lambda dt: self._force_refresh(sm), 0.1)
+        Clock.schedule_once(lambda dt: self._force_refresh(sm), 0.3)
         Clock.schedule_once(lambda dt: self._force_refresh(sm), 0.5)
         
         return sm
@@ -67,6 +71,10 @@ class FrogQuizApp(App):
     def _force_refresh(self, sm):
         """Force a screen refresh to fix blank screen on Android launch"""
         try:
+            # Fix for black screen issue with fullscreen=1 on Android
+            # See: https://github.com/kivy/python-for-android/issues/2720
+            Window.update_viewport()
+            
             current_screen = sm.current
             # Trigger a layout update by briefly switching screens
             sm.current = 'home'
