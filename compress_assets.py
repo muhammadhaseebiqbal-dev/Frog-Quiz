@@ -312,10 +312,10 @@ def compress_all_images(assets_dir, quality=85, max_dimension=1920, backup=True)
     print("="*60)
 
 def main():
-    """Main function"""
+    """Main function - Automatic compression with aggressive settings"""
     print("\n" + "="*60)
-    print("ASSET COMPRESSION SCRIPT")
-    print("Compress videos (keep audio quality) & images")
+    print("AUTOMATIC ASSET COMPRESSION")
+    print("Aggressive compression for smaller APK size")
     print("="*60)
     
     # Check for assets folder
@@ -328,62 +328,38 @@ def main():
     print(f"\n✓ Assets folder found: {assets_dir.absolute()}")
     
     # Check FFmpeg
-    if not check_ffmpeg():
-        print("\n⚠ FFmpeg is required for video compression")
-        print("  Install FFmpeg or skip video compression")
-        response = input("\nSkip video compression and compress images only? (y/n): ").strip().lower()
-        if response != 'y':
-            return
-        has_ffmpeg = False
-    else:
-        has_ffmpeg = True
+    has_ffmpeg = check_ffmpeg()
+    if not has_ffmpeg:
+        print("\n⚠ FFmpeg not found - skipping video compression")
+        print("  Only images will be compressed")
     
-    # Configuration
+    # Automatic configuration (aggressive compression)
     print("\n" + "-"*60)
-    print("COMPRESSION SETTINGS")
+    print("COMPRESSION SETTINGS (AUTOMATIC)")
     print("-"*60)
     
+    # Aggressive settings for maximum compression
+    crf = 30  # Higher CRF = more compression (28-32 is good for APK)
+    preset = 'medium'  # Balance between speed and compression
+    quality = 75  # Lower quality for smaller files (75-80 is good)
+    max_dimension = 1080  # HD resolution (good for mobile)
+    backup = True
+    
     if has_ffmpeg:
-        print("\nVideo settings:")
-        print("  CRF (Constant Rate Factor): 18-28 (lower=better, 23=default)")
-        print("  Preset: ultrafast, fast, medium, slow, veryslow")
-        
-        crf_input = input("\nEnter CRF value (press Enter for 28): ").strip()
-        crf = int(crf_input) if crf_input.isdigit() else 28
-        
-        preset_input = input("Enter preset (press Enter for 'medium'): ").strip()
-        preset = preset_input if preset_input else 'medium'
-        
-        print(f"\n  Video CRF: {crf}")
-        print(f"  Video Preset: {preset}")
+        print(f"\n📹 Video Settings:")
+        print(f"   CRF: {crf} (more compression)")
+        print(f"   Preset: {preset}")
+        print(f"   Audio: Copy original (no quality loss)")
     
-    print("\nImage settings:")
-    print("  Quality: 1-100 (higher=better)")
-    print("  Max dimension: pixels (width or height)")
+    print(f"\n🖼️ Image Settings:")
+    print(f"   Quality: {quality}%")
+    print(f"   Max Dimension: {max_dimension}px")
     
-    quality_input = input("\nEnter quality (press Enter for 85): ").strip()
-    quality = int(quality_input) if quality_input.isdigit() else 85
+    print(f"\n💾 Backup: Yes (original files will be saved)")
     
-    dimension_input = input("Enter max dimension (press Enter for 1920): ").strip()
-    max_dimension = int(dimension_input) if dimension_input.isdigit() else 1920
-    
-    print(f"\n  Image Quality: {quality}")
-    print(f"  Max Dimension: {max_dimension}px")
-    
-    # Backup option
-    print("\n" + "-"*60)
-    backup_response = input("\nCreate backup before compression? (y/n, default=y): ").strip().lower()
-    backup = backup_response != 'n'
-    
-    # Confirm
     print("\n" + "="*60)
-    print("READY TO COMPRESS")
+    print("STARTING COMPRESSION...")
     print("="*60)
-    response = input("\nProceed with compression? (y/n): ").strip().lower()
-    
-    if response != 'y':
-        print("\nCancelled")
-        return
     
     # Process videos
     if has_ffmpeg:
@@ -394,11 +370,15 @@ def main():
     compress_all_images(assets_dir, quality=quality, max_dimension=max_dimension, backup=backup)
     
     print("\n" + "="*60)
-    print("ALL DONE!")
+    print("✅ ALL DONE!")
     print("="*60)
     print("\n✓ Asset compression complete")
-    if backup:
-        print(f"✓ Original files backed up to: {assets_dir.absolute()}_backup")
+    print(f"✓ Original files backed up to: assets_backup/")
+    print("\n💡 Next steps:")
+    print("   1. Check the compressed files")
+    print("   2. Test the app to ensure quality is acceptable")
+    print("   3. If satisfied, commit and push to trigger APK build")
+    print("   4. If not satisfied, restore from backup and adjust settings")
 
 if __name__ == '__main__':
     try:
