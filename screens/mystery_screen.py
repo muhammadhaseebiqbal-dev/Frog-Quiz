@@ -40,8 +40,12 @@ class MysteryScreen(Screen):
         )
         content.add_widget(title)
         
-        # Video
-        self.video = Video(size_hint=(1, 0.5), state='stop', options={'eos': 'loop'})
+        # Video - loop on desktop, stop on Android
+        if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
+            video_options = {'eos': 'stop'}
+        else:
+            video_options = {'eos': 'loop'}
+        self.video = Video(size_hint=(1, 0.5), state='stop', options=video_options)
         content.add_widget(self.video)
         
         # Bottom section
@@ -144,7 +148,7 @@ class MysteryScreen(Screen):
                 text=frog['name'],
                 background_color=(0.3, 0.69, 0.31, 1),
                 background_normal='',  # Required for background_color to work
-                font_size='14sp',
+                font_size='20sp',
                 text_size=(None, None),
                 halign='center',
                 valign='middle',

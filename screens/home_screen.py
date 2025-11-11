@@ -55,7 +55,7 @@ class HomeScreen(Screen):
         inst_btn_container.add_widget(inst_btn)
         inst_box.add_widget(inst_btn_container)
         
-        inst_label = Label(text="How spectrograms\nshow sound", font_size='16sp', 
+        inst_label = Label(text="How spectrograms\nshow sound", font_size='22sp', 
                           color=(1, 1, 1, 1), size_hint=(1, 0.15), halign='center', valign='top',
                           text_size=(None, None), max_lines=2)
         inst_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
@@ -76,7 +76,7 @@ class HomeScreen(Screen):
             btn_container.add_widget(btn)
             frog_box.add_widget(btn_container)
             
-            lbl = Label(text=frog['name'], font_size='16sp', 
+            lbl = Label(text=frog['name'], font_size='22sp', 
                        color=(1, 1, 1, 1), size_hint=(1, 0.15), halign='center', valign='top',
                        text_size=(None, None), max_lines=2)
             lbl.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
@@ -96,7 +96,7 @@ class HomeScreen(Screen):
         mystery_btn_container.add_widget(mystery_btn)
         mystery_box.add_widget(mystery_btn_container)
         
-        mystery_label = Label(text="Mystery Frog", font_size='16sp', 
+        mystery_label = Label(text="Mystery Frog", font_size='22sp', 
                              color=(1, 1, 1, 1), size_hint=(1, 0.15), halign='center', valign='top',
                              text_size=(None, None), max_lines=2)
         mystery_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
