@@ -310,8 +310,8 @@ def app_info_page():
         
         with ui.row().props('flat bordered').style('padding:20px; border-radius: 15px'):
             ui.html("""
-                    <div style="font-size: 22px; max-width: 300px; text-align: center;">
-                    This app was created and designed by <b>Katie Howard</b> for the exhibition <i>‘Litoria’s Wetland World’</i>.<br><br>
+                    <div style="font-size: 22px; max-width: 800px; text-align: center;">
+                    This app was created and designed by <b>Katie Howard</b> for the exhibition <i>'Litoria's Wetland World'</i>.<br><br>
                     Sound files were provided by the Arthur Rylah Institute for Environmental Research (DEECA) and compiled with help from Louise Durkin.<br>
                     Spectrograms were created using PASE (Python-Audio-Spectrogram-Explorer).<br><br>
                     All photos provided by Katie Howard except for those listed below, which are used with permission from:<br>
@@ -399,9 +399,31 @@ def frog_detail_page(frog_name: str):
 
 
         # --- Video (no native controls) ---
-        video = ui.video(resource_path(frog["video"])).props('preload="auto" muted controlslist="nodownload nofullscreen noremoteplayback" disablepictureinpicture controls=false').classes(
+        video = ui.video(resource_path(frog["video"])).props('preload="auto" muted disablepictureinpicture').classes(
             "w-full max-w-5x1 h-auto rounded-xl shadow-md border border-gray-300"
-        )
+        ).style('pointer-events: none;')
+        
+        # Hide controls completely with CSS
+        ui.add_head_html('''
+            <style>
+            video::-webkit-media-controls {
+                display: none !important;
+            }
+            video::-webkit-media-controls-enclosure {
+                display: none !important;
+            }
+            video::-webkit-media-controls-panel {
+                display: none !important;
+            }
+            video::-moz-media-controls {
+                display: none !important;
+            }
+            video::-ms-media-controls {
+                display: none !important;
+            }
+            </style>
+        ''')
+        
         # pause initially to show first frame (no autoplay)
         ui.run_javascript('document.querySelector("video").pause()')
 
@@ -519,44 +541,69 @@ def mystery_frog_page():
         "revealed": False,
         "playing": False,
         "show_try_again": False,
+        "option_buttons": {},
     }
 
     # --- FUNCTIONS ---
     def build_frog_options(container, correct_frog):
         """Generate multiple-choice answer buttons"""
         container.clear()
-        correct_name = correct_frog["name"]
+        
+        # Get other frogs as options (comparing by entire frog object)
         options = random.sample(
-            [f["name"] for f in frogs_list if f != correct_frog],
+            [f for f in frogs_list if f["ind_name"] != correct_frog["ind_name"]],
             k=min(7, len(frogs_list) - 1)
         )
-        options.append(correct_name)
+        options.append(correct_frog)
         random.shuffle(options)
+        
+        # Store button references for later highlighting
+        state["option_buttons"] = {}
         
         with container:
             with ui.grid(columns=4).classes("gap-2 justify-center mt-2 grid-cols-1 md:grid-cols-4 w-full px-2"):
-                for name in options:
-                    
-                    ui.button(name, on_click=lambda _, n=name: check_answer(n, correct_name),
+                for frog in options:
+                    btn = ui.button(
+                        frog["name"], 
+                        on_click=lambda _, f=frog: check_answer(f, correct_frog)
                     ).classes(
                         "bg-green-700 text-white font-semibold text-sm md:text-md rounded-md px-2 py-2 "
-                        "hover:bg-green-800 transition-all h-auto md:h-16 w-full")
+                        "hover:bg-green-800 transition-all h-auto md:h-16 w-full"
+                    )
+                    # Store button reference with the frog ind_name as key
+                    state["option_buttons"][frog["ind_name"]] = btn
                     
                     
-    def check_answer(selected, correct):
-        """Reveal result and highlight correct answer"""
+    def check_answer(selected_frog, correct_frog):
+        """Reveal result and highlight correct answer - matching Kivy behavior"""
         if state["revealed"]:
             return
         state["revealed"] = True
         state["show_try_again"] = True
 
-        if selected == correct:
-            # NiceGUI's set_text() returns None, so don't chain .classes() on it.
-            result_label.set_text(f"✅ Correct! It’s the {correct}.")
-            result_label.classes("text-green-600 font-bold text-xl")
+        # Visual feedback for all buttons (matching Kivy implementation)
+        for frog_id, btn in state.get("option_buttons", {}).items():
+            if frog_id == selected_frog["ind_name"]:
+                # Selected answer gets black border
+                btn.style("border: 3px solid black")
+            
+            if frog_id == correct_frog["ind_name"]:
+                # Correct answer gets yellow/gold background (matching Kivy's (1, 0.84, 0, 1))
+                # Using direct style for more reliable color change
+                btn.style("background-color: #fbbf24 !important")  # Tailwind yellow-400
+            elif frog_id != selected_frog["ind_name"]:
+                # Other incorrect answers fade out
+                btn.style("opacity: 0.3")
+
+        # Update result text
+        if selected_frog["ind_name"] == correct_frog["ind_name"]:
+            result_label.set_text(f"✅ Correct! It's the {correct_frog['name'].replace(chr(10), ' ')}")
+            result_label.classes(remove="text-red-600")
+            result_label.classes(add="text-green-600 font-bold text-xl")
         else:
-            result_label.set_text(f"❌ Oops! It was the {correct}.")
-            result_label.classes("text-red-600 font-bold text-xl")
+            result_label.set_text(f"❌ Oops! It was the {correct_frog['name'].replace(chr(10), ' ')}")
+            result_label.classes(remove="text-green-600")
+            result_label.classes(add="text-red-600 font-bold text-xl")
 
        
     def try_again():
@@ -604,10 +651,31 @@ def mystery_frog_page():
 
         # Video (paused initially, no controls, muted by default)
         video = ui.video(state["current_frog"]["video"]).props(
-            'controls=false muted controlslist="nodownload nofullscreen noremoteplayback"'
+            'muted disablepictureinpicture'
         ).classes(
             "w-full max-w-5x1 h-auto rounded-xl shadow-md border border-gray-300"
-        )
+        ).style('pointer-events: none;')
+        
+        # Hide all video controls with CSS
+        ui.add_head_html('''
+            <style>
+            video::-webkit-media-controls {
+                display: none !important;
+            }
+            video::-webkit-media-controls-enclosure {
+                display: none !important;
+            }
+            video::-webkit-media-controls-panel {
+                display: none !important;
+            }
+            video::-moz-media-controls {
+                display: none !important;
+            }
+            video::-ms-media-controls {
+                display: none !important;
+            }
+            </style>
+        ''')
 
           # --- BOTTOM SECTION ---
         with ui.row().classes("w-full justify-between items-start"):
