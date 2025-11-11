@@ -44,12 +44,10 @@ class FrogDetailScreen(Screen):
         header.add_widget(Widget(size_hint=(0.15, 1)))  # Right spacer
         content.add_widget(header)
         
-        # Video with preview thumbnail - loop on desktop, stop on Android
-        if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
-            video_options = {'eos': 'stop'}
-        else:
-            video_options = {'eos': 'loop'}
+        # Video with preview thumbnail - stop after playing once (no loop)
+        video_options = {'eos': 'stop'}  # Stop at end of stream instead of looping
         self.video = Video(size_hint=(1, 0.65), state='stop', options=video_options)
+        self.video.bind(state=self._on_video_state_change)  # Monitor video state changes
         content.add_widget(self.video)
         
         # Controls
@@ -109,6 +107,13 @@ class FrogDetailScreen(Screen):
         self.playing = False
         self.play_btn.background_normal = 'assets/PLAY.png'
     
+    def _on_video_state_change(self, instance, value):
+        """Handle video state changes - update play button when video stops"""
+        if value == 'stop':
+            self.playing = False
+            self.play_btn.background_normal = 'assets/PLAY.png'
+            print("Video stopped - resetting play button")
+    
     def _load_video(self, video_file):
         """Load video with proper path handling and show first frame"""
         try:
@@ -116,7 +121,9 @@ class FrogDetailScreen(Screen):
             if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
                 video_path = video_file
             else:
-                video_path = str(Path(video_file).absolute())
+                # For desktop, make sure path is relative to the script location
+                script_dir = Path(__file__).parent.parent
+                video_path = str(script_dir / video_file)
             
             print(f"Loading video: {video_path}")
             

@@ -6,12 +6,19 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.graphics import Color, Rectangle
+from kivy.clock import Clock
+from kivy.uix.popup import Popup
+from kivy.app import App
 from screens.frog_data import FROGS
 
 
 class HomeScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+        
+        # Triple-tap exit functionality
+        self.tap_count = 0
+        self.tap_timer = None
         
         # Main layout
         main = FloatLayout()
@@ -136,3 +143,65 @@ class HomeScreen(Screen):
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
         self.rect.size = instance.size
+    
+    def on_touch_down(self, touch):
+        """Handle triple-tap exit in top-left corner (100x100 hot zone)"""
+        # Check if touch is in the hot zone (top-left 100x100 pixels)
+        if touch.x < 100 and (self.height - touch.y) < 100:
+            self.tap_count += 1
+            
+            # Start or restart the timer
+            if self.tap_timer:
+                self.tap_timer.cancel()
+            self.tap_timer = Clock.schedule_once(self._reset_tap_count, 5)
+            
+            # Check if we've reached 3 taps
+            if self.tap_count >= 3:
+                self._show_exit_confirmation()
+                return True  # Consume the touch event
+        
+        # Pass touch to children widgets
+        return super().on_touch_down(touch)
+    
+    def _reset_tap_count(self, dt):
+        """Reset tap counter after timeout"""
+        self.tap_count = 0
+        self.tap_timer = None
+    
+    def _show_exit_confirmation(self):
+        """Show confirmation dialog before exiting"""
+        # Reset tap count
+        self.tap_count = 0
+        if self.tap_timer:
+            self.tap_timer.cancel()
+            self.tap_timer = None
+        
+        # Create confirmation popup
+        content = BoxLayout(orientation='vertical', padding=20, spacing=20)
+        content.add_widget(Label(text='Do you want to exit the application?', 
+                                font_size='20sp', halign='center'))
+        
+        buttons = BoxLayout(spacing=10, size_hint=(1, 0.3))
+        
+        # Create popup first so we can reference it in button callbacks
+        popup = Popup(title='Exit Application',
+                     content=content,
+                     size_hint=(0.6, 0.4),
+                     auto_dismiss=False)
+        
+        yes_btn = Button(text='Yes', background_color=(0.8, 0.2, 0.2, 1))
+        yes_btn.bind(on_press=lambda x: self._exit_app(popup))
+        
+        no_btn = Button(text='No', background_color=(0.2, 0.8, 0.2, 1))
+        no_btn.bind(on_press=popup.dismiss)
+        
+        buttons.add_widget(yes_btn)
+        buttons.add_widget(no_btn)
+        content.add_widget(buttons)
+        
+        popup.open()
+    
+    def _exit_app(self, popup):
+        """Exit the application"""
+        popup.dismiss()
+        App.get_running_app().stop()

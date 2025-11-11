@@ -5,7 +5,6 @@ from kivy.uix.floatlayout import FloatLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.image import Image
-from kivy.uix.widget import Widget
 from kivy.graphics import Color, Rectangle, Line
 
 
@@ -28,50 +27,69 @@ class InstructionsScreen(Screen):
             font_size='28sp',
             color=(0, 0.5, 0, 1),
             bold=True,
-            halign='center'
+            halign='center',
+            valign='middle'
         )
         title.bind(size=title.setter('text_size'))
         content.add_widget(title)
         
         # Top info boxes (frequency and amplitude explanations)
-        top_boxes = BoxLayout(size_hint=(1, 0.15), spacing=20)
+        top_boxes = BoxLayout(size_hint=(1, 0.18), spacing=20)
         
-        # Frequency box
+        # Frequency box with background
+        freq_box = FloatLayout(size_hint=(0.5, 1))
+        with freq_box.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)  # Light gray background
+            self.freq_rect = Rectangle()
+        freq_box.bind(pos=lambda i, v: setattr(self.freq_rect, 'pos', i.pos),
+                     size=lambda i, v: setattr(self.freq_rect, 'size', i.size))
+        
+        # Frequency label with simpler text
         freq_label = Label(
-            text='Sounds are vibrations and the number of vibrations per second determines the [b]frequency[/b] or pitch of a sound.\n[b]Low pitch:[/b] drum roll, growl\n[b]High pitch:[/b] whistle, jingling keys',
-            size_hint=(0.5, 1),
+            text='Sounds are vibrations and the number of vibrations per second determines the [b]frequency[/b] or pitch of a sound.\n\n[b]Low pitch:[/b] drum roll, growl\n[b]High pitch:[/b] whistle, jingling keys',
+            size_hint=(0.9, 0.9),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
             font_size='16sp',
             color=(0, 0, 0, 1),
             halign='left',
             valign='middle',
-            markup=True,
-            padding=(10, 10)
+            markup=True
         )
-        freq_label.bind(size=lambda l, s: setattr(l, 'text_size', (s[0] - 20, s[1] - 20)))
-        top_boxes.add_widget(freq_label)
+        freq_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
+        freq_box.add_widget(freq_label)
+        top_boxes.add_widget(freq_box)
         
-        # Amplitude box
+        # Amplitude box with background
+        amp_box = FloatLayout(size_hint=(0.5, 1))
+        with amp_box.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)  # Light gray background
+            self.amp_rect = Rectangle()
+        amp_box.bind(pos=lambda i, v: setattr(self.amp_rect, 'pos', i.pos),
+                    size=lambda i, v: setattr(self.amp_rect, 'size', i.size))
+        
+        # Amplitude label with simpler text
         amp_label = Label(
-            text='The size of sound waves determines [b]amplitude[/b] — the larger the wave, the louder the sound.\n[b]Low amplitude:[/b] whispering\n[b]High amplitude:[/b] yelling',
-            size_hint=(0.5, 1),
+            text='The size of sound waves determines [b]amplitude[/b] — the larger the wave, the louder the sound.\n\n[b]Low amplitude:[/b] whispering\n[b]High amplitude:[/b] yelling',
+            size_hint=(0.9, 0.9),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
             font_size='16sp',
             color=(0, 0, 0, 1),
             halign='left',
             valign='middle',
-            markup=True,
-            padding=(10, 10)
+            markup=True
         )
-        amp_label.bind(size=lambda l, s: setattr(l, 'text_size', (s[0] - 20, s[1] - 20)))
-        top_boxes.add_widget(amp_label)
+        amp_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
+        amp_box.add_widget(amp_label)
+        top_boxes.add_widget(amp_box)
         
         content.add_widget(top_boxes)
         
         # Main spectrogram image (larger)
-        img = Image(source='assets/example.png', size_hint=(1, 0.55))
+        img = Image(source='assets/example.png', size_hint=(1, 0.5), allow_stretch=True, keep_ratio=True)
         content.add_widget(img)
         
         # Bottom section: Back button and explanation boxes
-        bottom_section = BoxLayout(size_hint=(1, 0.22), spacing=20)
+        bottom_section = BoxLayout(size_hint=(1, 0.24), spacing=20)
         
         # Back button - maintain square aspect
         back_container = BoxLayout(size_hint=(0.2, 1))
@@ -87,17 +105,25 @@ class InstructionsScreen(Screen):
         
         # Green box explanation
         green_box = FloatLayout(size_hint=(0.4, 1))
+        
+        # Add background
+        with green_box.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)  # Light gray background
+            self.green_bg = Rectangle()
+        green_box.bind(pos=lambda i, v: setattr(self.green_bg, 'pos', i.pos),
+                      size=lambda i, v: setattr(self.green_bg, 'size', i.size))
+        
         green_label = Label(
             text='The call in the [b]green box[/b] has a higher [b]frequency[/b].',
-            size_hint=(1, 1),
+            size_hint=(0.85, 0.85),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
             font_size='18sp',
             color=(0, 0, 0, 1),
             halign='center',
             valign='middle',
-            markup=True,
-            padding=(15, 15)
+            markup=True
         )
-        green_label.bind(size=lambda l, s: setattr(l, 'text_size', (s[0] - 30, s[1] - 30)))
+        green_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
         
         # Draw green border
         with green_box.canvas.after:
@@ -110,17 +136,25 @@ class InstructionsScreen(Screen):
         
         # Yellow box explanation
         yellow_box = FloatLayout(size_hint=(0.4, 1))
+        
+        # Add background
+        with yellow_box.canvas.before:
+            Color(0.95, 0.95, 0.95, 1)  # Light gray background
+            self.yellow_bg = Rectangle()
+        yellow_box.bind(pos=lambda i, v: setattr(self.yellow_bg, 'pos', i.pos),
+                       size=lambda i, v: setattr(self.yellow_bg, 'size', i.size))
+        
         yellow_label = Label(
             text='The call in the [b]yellow box[/b] is higher in [b]amplitude[/b].',
-            size_hint=(1, 1),
+            size_hint=(0.85, 0.85),
+            pos_hint={'center_x': 0.5, 'center_y': 0.5},
             font_size='18sp',
             color=(0, 0, 0, 1),
             halign='center',
             valign='middle',
-            markup=True,
-            padding=(15, 15)
+            markup=True
         )
-        yellow_label.bind(size=lambda l, s: setattr(l, 'text_size', (s[0] - 30, s[1] - 30)))
+        yellow_label.bind(width=lambda l, w: setattr(l, 'text_size', (w, None)))
         
         # Draw yellow border
         with yellow_box.canvas.after:
@@ -135,14 +169,13 @@ class InstructionsScreen(Screen):
         
         main.add_widget(content)
         self.add_widget(main)
-        self.green_box = green_box
-        self.yellow_box = yellow_box
     
     def _update_button_size(self, button, container):
         """Maintain square aspect ratio for buttons"""
         if container.width > 0 and container.height > 0:
             size = min(container.width, container.height)
             button.size = (size, size)
+            button.pos_hint = {'center_x': 0.5, 'center_y': 0.5}
     
     def _update_green_border(self, instance, value):
         """Update green border rectangle"""

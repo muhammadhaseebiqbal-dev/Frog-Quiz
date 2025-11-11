@@ -40,12 +40,10 @@ class MysteryScreen(Screen):
         )
         content.add_widget(title)
         
-        # Video - loop on desktop, stop on Android
-        if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
-            video_options = {'eos': 'stop'}
-        else:
-            video_options = {'eos': 'loop'}
+        # Video - stop after playing once (no loop)
+        video_options = {'eos': 'stop'}  # Stop at end of stream instead of looping
         self.video = Video(size_hint=(1, 0.5), state='stop', options=video_options)
+        self.video.bind(state=self._on_video_state_change)  # Monitor video state changes
         content.add_widget(self.video)
         
         # Bottom section
@@ -159,6 +157,13 @@ class MysteryScreen(Screen):
             btn.bind(on_press=lambda x, f=frog: self.check_answer(f))
             self.answer_grid.add_widget(btn)
     
+    def _on_video_state_change(self, instance, value):
+        """Handle video state changes - update play button when video stops"""
+        if value == 'stop':
+            self.playing = False
+            self.play_btn.background_normal = 'assets/PLAY.png'
+            print("Quiz video stopped - resetting play button")
+    
     def _load_quiz_video(self):
         """Load quiz video with proper path handling and show first frame"""
         try:
@@ -166,7 +171,9 @@ class MysteryScreen(Screen):
             if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
                 video_path = self.current_frog['video']
             else:
-                video_path = str(Path(self.current_frog['video']).absolute())
+                # For desktop, make sure path is relative to the script location
+                script_dir = Path(__file__).parent.parent
+                video_path = str(script_dir / self.current_frog['video'])
             
             print(f"Loading quiz video: {video_path}")
             
