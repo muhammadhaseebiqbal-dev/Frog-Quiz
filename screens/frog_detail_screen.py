@@ -31,11 +31,11 @@ class FrogDetailScreen(Screen):
         # Header
         header = BoxLayout(size_hint=(1, 0.1), spacing=10)
         header.add_widget(Widget(size_hint=(0.15, 1)))  # Left spacer
-        self.name_lbl = Label(font_size='24sp', color=(0, 0, 0, 1), bold=True, 
+        self.name_lbl = Label(font_size='32sp', color=(0, 0, 0, 1), bold=True, 
                              size_hint=(0.35, 1), halign='center', valign='middle',
                              text_size=(None, None), max_lines=2)
         self.name_lbl.bind(width=lambda l, w: setattr(l, 'text_size', (w - 10, None)))
-        self.species_lbl = Label(font_size='20sp', color=(0, 0, 0, 1), italic=True,
+        self.species_lbl = Label(font_size='26sp', color=(0, 0, 0, 1), italic=True,
                                 size_hint=(0.35, 1), halign='center', valign='middle',
                                 text_size=(None, None), max_lines=2)
         self.species_lbl.bind(width=lambda l, w: setattr(l, 'text_size', (w - 10, None)))
@@ -44,8 +44,12 @@ class FrogDetailScreen(Screen):
         header.add_widget(Widget(size_hint=(0.15, 1)))  # Right spacer
         content.add_widget(header)
         
-        # Video with preview thumbnail
-        self.video = Video(size_hint=(1, 0.65), state='stop', options={'eos': 'loop'})
+        # Video with preview thumbnail - loop on desktop, stop on Android
+        if platform.system() == 'Android' or 'ANDROID_ARGUMENT' in os.environ:
+            video_options = {'eos': 'stop'}
+        else:
+            video_options = {'eos': 'loop'}
+        self.video = Video(size_hint=(1, 0.65), state='stop', options=video_options)
         content.add_widget(self.video)
         
         # Controls

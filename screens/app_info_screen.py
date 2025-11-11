@@ -59,22 +59,30 @@ class AppInfoScreen(Screen):
         scroll.add_widget(scroll_content)
         container.add_widget(scroll)
         
-        # Back button at bottom (fixed)
+        # Back button at bottom (fixed) - maintain square aspect
         back_box = BoxLayout(size_hint=(1, 0.15))
+        back_btn_container = BoxLayout(size_hint=(0.15, 1))
         back_btn = Button(
             background_normal='assets/Arrow.png',
             background_down='assets/Arrow.png',
-            size_hint=(0.15, 1),
-            pos_hint={'center_x': 0.5}
+            size_hint=(None, None)
         )
         back_btn.bind(on_press=lambda x: self.manager.go_to('home'))
+        back_btn_container.bind(size=lambda i, v: self._update_button_size(back_btn, i))
+        back_btn_container.add_widget(back_btn)
         back_box.add_widget(Widget())
-        back_box.add_widget(back_btn)
+        back_box.add_widget(back_btn_container)
         back_box.add_widget(Widget())
         container.add_widget(back_box)
         
         main.add_widget(container)
         self.add_widget(main)
+    
+    def _update_button_size(self, button, container):
+        """Maintain square aspect ratio for buttons"""
+        if container.width > 0 and container.height > 0:
+            size = min(container.width, container.height)
+            button.size = (size, size)
     
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
